@@ -8,7 +8,15 @@ class HTMLNode():
         self.props = props
         
     def to_html(self):
-        raise NotImplementedError
+        if self.props:  # Handle attributes like props
+            props_str = ' '.join(f'{key}="{value}"' for key, value in self.props.items())
+            open_tag = f"<{self.tag} {props_str}>"
+        else:
+            open_tag = f"<{self.tag}>"
+        children_str = ''.join(child.to_html() for child in self.children)
+        close_tag = f"</{self.tag}>"
+        return f"{open_tag}{children_str}{close_tag}"
+
     
     def props_to_html(self):
         if not self.props:
@@ -20,6 +28,11 @@ class HTMLNode():
             f"HTMLNode(tag={self.tag}, value={self.value}, "
             f"children={self.children}, props={self.props})"
         )
+    
+    def add_child(self, child):
+        if self.children is None:
+            self.children = []
+        self.children.append(child)
     
 
 class LeafNode(HTMLNode):
@@ -47,3 +60,8 @@ class ParentNode(HTMLNode):
             raise TypeError("All children must be instances of HTMLNode.")
         children = ''.join(child.to_html() for child in self.children)
         return f'<{self.tag}{self.props_to_html()}>{children}</{self.tag}>'
+    
+    def add_child(self, child):
+        if self.children is None:
+            self.children = []
+        self.children.append(child)

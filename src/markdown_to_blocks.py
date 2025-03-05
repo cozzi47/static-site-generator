@@ -1,6 +1,7 @@
 import re
 from enum import Enum
 
+
 class BlockType(Enum):
     PARAGRAPH = "paragraph"
     HEADING = "heading"
@@ -15,8 +16,11 @@ def markdown_to_blocks(markdown):
     result = []
     for block in blocks:
         if block.strip():
-            lines = [line.strip() for line in block.split("\n")]
-            result.append("\n".join(lines))
+            if block.startswith("```"):
+                result.append(block)
+            else:
+                lines = [line.strip() for line in block.split("\n")]
+                result.append("\n".join(lines))
     return result
 
 def block_to_block_type(block):
