@@ -14,28 +14,38 @@ def text_to_textnodes(text):
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     if not old_nodes:
         return []
-    if not isinstance(old_nodes, list):
+    if not delimiter or not isinstance(delimiter, str):
+        raise ValueError("Delimiter must be a non-empty string")
+    if isinstance(old_nodes, str):
+        old_nodes = [TextNode(old_nodes, TextType.TEXT)]
+    elif not isinstance(old_nodes, list):
         old_nodes = [old_nodes]
+    old_nodes = [TextNode(node, TextType.TEXT) if isinstance(node, str) else node for node in old_nodes]
     new_nodes = []
     for node in old_nodes:
-        if node.text_type is TextType.TEXT:
+        if node.text_type is TextType.TEXT and delimiter in node.text:
             text = node.text
-            first_delimiter = text.find(delimiter)
-            if first_delimiter == -1:
-                new_nodes.append(node)
-            else:
-                before = text[:first_delimiter]
+            while delimiter in text:
+                first_delimiter = text.find(delimiter)
                 second_delimiter = text.find(delimiter, first_delimiter + len(delimiter))
+                
+                # If no second delimiter is found, handle the remaining text in one pass
                 if second_delimiter == -1:
-                    raise Exception("No matching delimiter found.")
+                    before = text[:first_delimiter]  # Text before the first delimiter
+                    between = text[first_delimiter + len(delimiter):]  # Text after the first delimiter
+                    if before:  # Only add 'before' if it's non-empty
+                        new_nodes.append(TextNode(before, TextType.TEXT))           
+                    new_nodes.append(TextNode(between, text_type))  # Add the 'between' portion as the given text type
+                    break
+                before = text[:first_delimiter]
                 between = text[first_delimiter + len(delimiter):second_delimiter]
                 after = text[second_delimiter + len(delimiter):]
                 if before:
                     new_nodes.append(TextNode(before, TextType.TEXT))
-                if between:
-                    new_nodes.append(TextNode(between, text_type))
-                if after:
-                    new_nodes.append(TextNode(after, TextType.TEXT))
+                new_nodes.append(TextNode(between, text_type))
+                text = after
+            if text:
+                new_nodes.append(TextNode(text, TextType.TEXT))
         else:
             new_nodes.append(node)
     return new_nodes
@@ -105,4 +115,3 @@ def split_nodes_link(old_nodes):
         if remaining_text:
             new_nodes.append(TextNode(remaining_text, TextType.TEXT))
     return new_nodes
-        

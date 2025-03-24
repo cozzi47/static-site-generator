@@ -13,7 +13,7 @@ class HTMLNode():
             open_tag = f"<{self.tag} {props_str}>"
         else:
             open_tag = f"<{self.tag}>"
-        children_str = ''.join(child.to_html() for child in self.children)
+        children_str = ''.join(child.to_html() for child in self.children) if self.children else ""
         close_tag = f"</{self.tag}>"
         return f"{open_tag}{children_str}{close_tag}"
 

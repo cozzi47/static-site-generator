@@ -10,6 +10,7 @@ class BlockType(Enum):
     UNORDERED_LIST = "unordered_list"
     ORDERED_LIST = "ordered_list"
 
+
 def markdown_to_blocks(markdown):
     markdown = markdown.strip()
     blocks = markdown.split("\n\n")
@@ -22,6 +23,7 @@ def markdown_to_blocks(markdown):
                 lines = [line.strip() for line in block.split("\n")]
                 result.append("\n".join(lines))
     return result
+
 
 def block_to_block_type(block):
     lines = block.split("\n")
@@ -42,3 +44,4 @@ def block_to_block_type(block):
     if ordered_list and lines:
         return BlockType.ORDERED_LIST
     return BlockType.PARAGRAPH
+

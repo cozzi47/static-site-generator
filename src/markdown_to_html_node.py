@@ -1,3 +1,4 @@
+import re
 from htmlnode import HTMLNode, ParentNode, LeafNode
 from textnode import TextNode, TextType
 from markdown_to_textnode import text_to_textnodes
@@ -30,12 +31,25 @@ def markdown_to_html_node(markdown):
 
         else:
             child_node = HTMLNode(tag)
-            text_nodes = text_to_textnodes(block)
+            cleaned_content = clean_markdown_syntax(block, block_type)
+            text_nodes = text_to_textnodes(cleaned_content)
             for text_node in text_nodes:
                 child_node.add_child(text_node.text_node_to_html_node())
             html_node.add_child(child_node)
                 
     return html_node
+
+def clean_markdown_syntax(block, block_type):
+    if block_type == BlockType.HEADING:
+        match = re.match(r'^(#+)\s+(.*)', block, re.DOTALL)
+        if match:
+            return match.group(2)
+    elif block_type == BlockType.QUOTE:
+        lines = block.split("\n")
+        cleaned_lines = [line.lstrip("> ") for line in lines]
+        return "\n".join(cleaned_lines)
+    # Add more cleaning logic for other block types as needed
+    return block
 
 
 def process_code_block(block):
@@ -56,7 +70,11 @@ def process_ordered_list(block):
         line = line.strip()
         if line:
             content = line.split(". ", 1)[-1].strip()
-            li_node = LeafNode("li", content)
+            text_nodes = text_to_textnodes(content)
+            li_node = HTMLNode("li")
+            for text_node in text_nodes:
+                html_node = text_node.text_node_to_html_node()
+                li_node.add_child(html_node)
             ol_node.add_child(li_node)
     return ol_node
 
@@ -68,7 +86,11 @@ def process_unordered_list(block):
         line = line.strip()
         if line:
             content = line[2:].strip() if line.startswith(("-", "*")) else line
-            li_node = LeafNode("li", content)
+            text_nodes = text_to_textnodes(content)
+            li_node = HTMLNode("li")
+            for text_node in text_nodes:
+                html_node = text_node.text_node_to_html_node()
+                li_node.add_child(html_node)
             ul_node.add_child(li_node)
     return ul_node
 
