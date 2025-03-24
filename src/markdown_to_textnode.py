@@ -14,14 +14,21 @@ def text_to_textnodes(text):
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     if not old_nodes:
         return []
+    
     if not delimiter or not isinstance(delimiter, str):
         raise ValueError("Delimiter must be a non-empty string")
+    
+    # Ensure `old_nodes` is a list of TextNode objects
     if isinstance(old_nodes, str):
         old_nodes = [TextNode(old_nodes, TextType.TEXT)]
     elif not isinstance(old_nodes, list):
         old_nodes = [old_nodes]
+
     old_nodes = [TextNode(node, TextType.TEXT) if isinstance(node, str) else node for node in old_nodes]
+    
     new_nodes = []
+    
+    # Process each node
     for node in old_nodes:
         if node.text_type is TextType.TEXT and delimiter in node.text:
             text = node.text
@@ -36,18 +43,28 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                     if before:  # Only add 'before' if it's non-empty
                         new_nodes.append(TextNode(before, TextType.TEXT))           
                     new_nodes.append(TextNode(between, text_type))  # Add the 'between' portion as the given text type
-                    break
+                    break  # Exit the loop as there's no more delimiter to process
+
+                # Handle the case of two delimiters (splitting text)
                 before = text[:first_delimiter]
                 between = text[first_delimiter + len(delimiter):second_delimiter]
                 after = text[second_delimiter + len(delimiter):]
+                
+                # Append to `new_nodes` as appropriate
                 if before:
                     new_nodes.append(TextNode(before, TextType.TEXT))
                 new_nodes.append(TextNode(between, text_type))
+                
+                # Update text to continue processing the remaining portion
                 text = after
+            
+            # Append any remaining text after all delimiters are processed
             if text:
                 new_nodes.append(TextNode(text, TextType.TEXT))
         else:
+            # If the node isn't of `TextType.TEXT` or doesn't contain the delimiter
             new_nodes.append(node)
+    
     return new_nodes
 
 def extract_markdown_images(text):
